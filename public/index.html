@@ -2,14 +2,14 @@
 <html lang="en">
 <head>
   <meta charset="utf-8" />
-  <title>VoxTalk</title>
+  <title>VoxTalk (Fast Trail)</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <link rel="icon" href="data:,">
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
   <div class="app">
-    <p class="demo-label">Demo</p>
+    <p class="demo-label">Fast Trail</p>
     <h1>Talk to VoxTalk</h1>
     <button id="pttBtn" aria-pressed="false"></button>
     <div id="answer"><div class="muted">Conversation will appear here.</div></div>
@@ -62,16 +62,22 @@
               if (chunk) appendLine("ai", chunk);
             }
 
-            // 🔹 Speech starts → halo ON
+            // 🔹 Speech starts → halo ON (with grace buffer)
             if (evt.type === "response.audio_transcript.delta") {
               console.log("AI is speaking (transcript delta)");
               setSpeaking(true);
+              clearTimeout(window._speakTimer);
+              window._speakTimer = setTimeout(()=> {
+                console.log("Grace period expired → turning off halo");
+                setSpeaking(false);
+              }, 1000);
             }
 
-            // 🔹 Speech finished → halo OFF
+            // 🔹 Hard stop when audio finishes
             if (evt.type === "response.audio.done" || evt.type === "output_audio_buffer.stopped") {
               console.log("AI finished speaking (audio done/stopped)");
               setSpeaking(false);
+              clearTimeout(window._speakTimer);
             }
 
           } catch(err) {
